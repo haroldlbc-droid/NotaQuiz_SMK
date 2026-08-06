@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Generator Sejarah Tingkatan 1</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header>
+    <h1>Generator Sejarah Tingkatan 1</h1>
+    <p>Bina ringkasan, fakta penting, dan soalan kuiz untuk topik Sejarah Tingkatan 1.</p>
+  </header>
+
+  <main>
+    <div class="app-layout">
+      <aside class="sidebar">
+        <div class="controls">
+          <label for="chapter-select">Pilih Bab:</label>
+          <select id="chapter-select"></select>
+
+          <label for="topic-select">Pilih Topik:</label>
+          <select id="topic-select"></select>
+
+          <label for="mode-select">Pilih mod:</label>
+          <select id="mode-select">
+            <option value="summary-facts">Fakta Penting</option>
+            <option value="quiz">Soalan Kuiz</option>
+          </select>
+
+          <button id="generate-btn">Hasilkan</button>
+        </div>
+      </aside>
+
+      <section id="output" class="output">
+        <div id="result"></div>
+      </section>
+    </div>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
