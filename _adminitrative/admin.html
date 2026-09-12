@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSV Import Admin</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #14213d;
+      --muted: #64748b;
+      --paper: #f6f1e8;
+      --panel: #fffdf8;
+      --line: #ded5c5;
+      --accent: #d05a3f;
+      --accent-dark: #9f3d2b;
+      --success: #216e54;
+      --error: #9f2d35;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font: 16px/1.5 Georgia, "Times New Roman", serif;
+      background: radial-gradient(circle at 15% 10%, #f4c7a3 0, transparent 28%), var(--paper);
+    }
+
+    main { width: min(760px, calc(100% - 32px)); margin: 0 auto; padding: 64px 0; }
+    .eyebrow { margin: 0 0 10px; color: var(--accent-dark); font: 700 12px/1.2 Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; }
+    h1 { max-width: 560px; margin: 0; font-size: clamp(2.4rem, 7vw, 5.2rem); line-height: .95; letter-spacing: 0; }
+    .intro { max-width: 560px; margin: 20px 0 36px; color: var(--muted); font: 16px/1.6 Arial, sans-serif; }
+    form { padding: 28px; background: var(--panel); border: 1px solid var(--line); box-shadow: 12px 12px 0 #e6d8c5; }
+    label { display: block; margin: 0 0 8px; font: 700 13px/1.2 Arial, sans-serif; }
+    input[type="file"], input[type="text"] { width: 100%; padding: 12px; border: 1px solid var(--line); background: #fff; color: var(--ink); font: 15px Arial, sans-serif; }
+    .field { margin-bottom: 22px; }
+    .hint { margin: 7px 0 0; color: var(--muted); font: 12px/1.4 Arial, sans-serif; }
+    button { width: 100%; padding: 14px 18px; border: 0; background: var(--accent); color: white; cursor: pointer; font: 700 14px Arial, sans-serif; }
+    button:hover { background: var(--accent-dark); }
+    button.secondary { margin-bottom: 12px; background: var(--ink); }
+    button:disabled { cursor: wait; opacity: .6; }
+    #status { min-height: 24px; margin-top: 24px; font: 14px/1.5 Arial, sans-serif; }
+    #status.success { color: var(--success); }
+    #status.error { color: var(--error); }
+    .result { margin-top: 10px; padding: 14px; background: #edf6ef; border-left: 4px solid var(--success); color: var(--success); }
+    @media (max-width: 560px) { main { padding: 36px 0; } form { padding: 20px; box-shadow: 7px 7px 0 #e6d8c5; } }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">Administrative tools</p>
+    <h1>Import CSV</h1>
+    <p class="intro">Muat naik dataset yang sah untuk mengemas kini fail data, senarai dataset, dan sandaran aplikasi.</p>
+
+    <form id="import-form">
+      <div id="direct-folder-controls">
+        <button id="folder-button" class="secondary" type="button">Pilih folder projek</button>
+        <p id="folder-status" class="hint">Untuk penggunaan terus melalui admin.html, pilih folder utama projek sekali.</p>
+      </div>
+      <div class="field">
+        <label for="csv-file">Fail CSV</label>
+        <input id="csv-file" type="file" accept=".csv,text/csv" required>
+        <p class="hint">CSV mesti mempunyai 14 lajur mengikut format template.csv.</p>
+      </div>
+
+      <div class="field" hidden>
+        <label for="target-name">Nama fail dalam data/</label>
+        <input id="target-name" type="text" pattern="[A-Za-z0-9][A-Za-z0-9_-]*\.csv">
+        <p class="hint">Gunakan format seperti subjek_tingkatan_1.csv.</p>
+      </div>
+
+      <button id="submit-button" type="submit">Import dan kemas kini</button>
+      <div id="status" role="status" aria-live="polite"></div>
+    </form>
+  </main>
+
+  <script>
+    const form = document.getElementById('import-form');
+    const fileInput = document.getElementById('csv-file');
+    const targetInput = document.getElementById('target-name');
+    const submitButton = document.getElementById('submit-button');
+    const status = document.getElementById('status');
+    const folderButton = document.getElementById('folder-button');
+    const folderStatus = document.getElementById('folder-status');
+    const directFolderControls = document.getElementById('direct-folder-controls');
+    let projectDirectory;
+
+    if (window.location.protocol !== 'file:') directFolderControls.hidden = true;
+
+    const requiredHeaders = ['chapter_id', 'chapter', 'topic_id', 'topic', 'type', 'text', 'text_en', 'choice_a', 'choice_b', 'choice_c', 'choice_d', 'answer', 'person_name', 'person_role'];
+
+    function parseCsv(text) {
+      const rows = [];
+      let row = [''];
+      let inQuotes = false;
+      for (let i = 0; i < text.length; i += 1) {
+        const character = text[i];
+        const next = text[i + 1];
+        if (inQuotes) {
+          if (character === '"' && next === '"') { row[row.length - 1] += '"'; i += 1; }
+          else if (character === '"') inQuotes = false;
+          else row[row.length - 1] += character;
+        } else if (character === '"') inQuotes = true;
+        else if (character === ',') row.push('');
+        else if (character === '\r' && next === '\n') { rows.push(row); row = ['']; i += 1; }
+        else if (character === '\n' || character === '\r') { rows.push(row); row = ['']; }
+        else row[row.length - 1] += character;
+      }
+      if (inQuotes) throw new Error('CSV mempunyai petikan yang tidak ditutup.');
+      if (row.length > 1 || row[0] !== '') rows.push(row);
+      return rows;
+    }
+
+    function validateCsv(text) {
+      const rows = parseCsv(text);
+      if (rows.length < 2) throw new Error('CSV mesti mempunyai header dan sekurang-kurangnya satu baris data.');
+      const headers = rows[0].map((header) => header.trim().toLowerCase());
+      const missing = requiredHeaders.filter((header) => !headers.includes(header));
+      if (missing.length) throw new Error(`Lajur tiada: ${missing.join(', ')}.`);
+      if (rows.slice(1).some((row) => row.length !== headers.length)) throw new Error('Bilangan lajur CSV tidak konsisten.');
+      return rows.slice(1).filter((row) => row.some((value) => value.trim())).length;
+    }
+
+    function formatLabel(value) {
+      return value.split('_').map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
+    }
+
+    async function writeText(directory, name, text) {
+      const handle = await directory.getFileHandle(name, { create: true });
+      const writable = await handle.createWritable();
+      await writable.write(text);
+      await writable.close();
+    }
+
+    async function updateDirectly(file, targetName) {
+      if (!window.showDirectoryPicker) throw new Error('Browser ini tidak menyokong folder access. Gunakan Chrome atau Edge.');
+      if (!projectDirectory) throw new Error('Pilih folder projek dahulu.');
+      const csvText = (await file.text()).replace(/^\uFEFF/, '');
+      const rowCount = validateCsv(csvText);
+      const dataDirectory = await projectDirectory.getDirectoryHandle('data', { create: true });
+      await writeText(dataDirectory, targetName, csvText);
+
+      const datasets = [];
+      for await (const entry of dataDirectory.values()) {
+        if (entry.kind !== 'file' || !entry.name.toLowerCase().endsWith('.csv') || entry.name.toLowerCase().startsWith('template')) continue;
+        const name = entry.name.slice(0, -4);
+        const match = name.match(/^(.*)_(tingkatan_\d+)(?:_.*)?$/i);
+        const subjectId = (match ? match[1] : name).toLowerCase();
+        const tingkatanId = match ? match[2].toLowerCase() : 'umum';
+        datasets.push({ file: `data/${entry.name}`, fileName: entry.name, subjectId, subjectName: formatLabel(subjectId), tingkatanId, tingkatanName: formatLabel(tingkatanId) });
+      }
+      datasets.sort((a, b) => a.tingkatanId.localeCompare(b.tingkatanId) || a.subjectName.localeCompare(b.subjectName));
+      await writeText(dataDirectory, 'index.json', JSON.stringify(datasets, null, 2));
+
+      const appHandle = await projectDirectory.getFileHandle('app.js');
+      const appFile = await appHandle.getFile();
+      const appText = await appFile.text();
+      const key = `"data/${targetName}"`;
+      const keyStart = appText.indexOf(key);
+      if (keyStart >= 0) {
+        const colon = appText.indexOf(':', keyStart);
+        const valueStart = appText.indexOf('"', colon);
+        let valueEnd = valueStart + 1;
+        while (valueEnd < appText.length) {
+          if (appText[valueEnd] === '"' && appText[valueEnd - 1] !== '\\') break;
+          valueEnd += 1;
+        }
+        await writeText(projectDirectory, 'app.js', `${appText.slice(0, valueStart)}${JSON.stringify(csvText)}${appText.slice(valueEnd + 1)}`);
+      }
+      return { rowCount, datasetCount: datasets.length };
+    }
+
+    folderButton.addEventListener('click', async () => {
+      try {
+        projectDirectory = await window.showDirectoryPicker({ mode: 'readwrite' });
+        folderStatus.textContent = `Folder dipilih: ${projectDirectory.name}`;
+        folderStatus.style.color = 'var(--success)';
+      } catch (error) {
+        if (error.name !== 'AbortError') folderStatus.textContent = error.message;
+      }
+    });
+
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files[0]) {
+        targetInput.value = fileInput.files[0].name;
+      }
+    });
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const file = fileInput.files[0];
+      if (!file) return;
+
+      submitButton.disabled = true;
+      status.className = '';
+      status.textContent = 'Memproses CSV...';
+
+      try {
+        if (window.location.protocol === 'file:') {
+          const result = await updateDirectly(file, targetInput.value);
+          status.className = 'success';
+          status.innerHTML = `<div class="result">Berjaya: ${result.rowCount} baris diimport ke <strong>data/${targetInput.value}</strong>. ${result.datasetCount} dataset disenaraikan dalam index.json.</div>`;
+          return;
+        }
+
+        const response = await fetch('/api/import', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ csv: await file.text(), targetName: targetInput.value })
+        });
+        const payload = await response.json();
+        if (!response.ok || !payload.ok) throw new Error(payload.error || 'Import gagal.');
+
+        const result = payload.result;
+        status.className = 'success';
+        status.innerHTML = `<div class="result">Berjaya: ${result.rowCount} baris diimport ke <strong>data/${result.targetName}</strong>. ${result.datasetCount} dataset disenaraikan dalam index.json.</div>`;
+      } catch (error) {
+        status.className = 'error';
+        status.textContent = error.message;
+      } finally {
+        submitButton.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

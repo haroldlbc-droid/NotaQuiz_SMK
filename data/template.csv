@@ -1,0 +1,8 @@
+chapter_id,chapter,topic_id,topic,type,text,text_en,choice_a,choice_b,choice_c,choice_d,answer,person_name,person_role
+bab1,Bab 1: Contoh Bab,1-1-contoh,1.1 Contoh Topik,summary,Ringkasan topik ini dalam Bahasa Melayu.,Summary of this topic in English.,,,,,,,
+bab1,Bab 1: Contoh Bab,1-1-contoh,1.1 Contoh Topik,fact,Fakta pertama topik ini.,First fact of this topic.,,,,,,,
+bab1,Bab 1: Contoh Bab,1-1-contoh,1.1 Contoh Topik,fact,Fakta kedua topik ini.,Second fact of this topic.,,,,,,,
+bab1,Bab 1: Contoh Bab,1-1-contoh,1.1 Contoh Topik,person,Penerangan tentang tokoh penting ini.,Description of this important figure.,,,,,,Nama Tokoh,Jawatan / Gelaran Tokoh
+bab1,Bab 1: Contoh Bab,1-1-contoh,1.1 Contoh Topik,multiple_choice,Soalan pilihan berganda? / Multiple choice question?,,Pilihan A / Option A,Pilihan B / Option B,Pilihan C / Option C,Pilihan D / Option D,Pilihan A / Option A,,
+bab1,Bab 1: Contoh Bab,1-1-contoh,1.1 Contoh Topik,objective,Soalan subjektif / objektif? / Subjective question?,,,,,,Jawapan bagi soalan objektif / Answer for the question.,,
+

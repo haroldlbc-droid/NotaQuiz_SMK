@@ -3,26 +3,32 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Generator Sejarah Tingkatan 1</title>
+  <title>Generator Nota &amp; Kuiz Pembelajaran</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <header>
-    <h1>Generator Sejarah Tingkatan 1</h1>
-    <p>Bina ringkasan, fakta penting, dan soalan kuiz untuk topik Sejarah Tingkatan 1.</p>
+    <h1>Generator Nota &amp; Kuiz Pembelajaran</h1>
+    <p>Bina ringkasan, fakta penting, dan soalan kuiz untuk pelbagai subjek dan tingkatan.</p>
   </header>
 
   <main>
     <div class="app-layout">
       <aside class="sidebar">
         <div class="controls">
+          <label for="tingkatan-select">Pilih Tingkatan:</label>
+          <select id="tingkatan-select"></select>
+
+          <label for="subject-select">Pilih Subjek:</label>
+          <select id="subject-select"></select>
+
           <label for="chapter-select">Pilih Bab:</label>
           <select id="chapter-select"></select>
 
           <label for="topic-select">Pilih Topik:</label>
           <select id="topic-select"></select>
 
-          <label for="mode-select">Pilih mod:</label>
+          <label for="mode-select">Pilih Mod:</label>
           <select id="mode-select">
             <option value="summary-facts">Fakta Penting</option>
             <option value="quiz">Soalan Kuiz</option>
@@ -33,6 +39,7 @@
       </aside>
 
       <section id="output" class="output">
+        <div id="status-message" class="status-message" style="display: none;"></div>
         <div id="result"></div>
       </section>
     </div>
