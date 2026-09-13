@@ -51,6 +51,7 @@ const modeSelect = document.getElementById("mode-select");
 const generateBtn = document.getElementById("generate-btn");
 const statusMessageEl = document.getElementById("status-message");
 const resultEl = document.getElementById("result");
+const quickNav = document.getElementById("quick-nav");
 
 // Senarai dataset yang tersedia daripada CSV
 let availableDatasets = [];
@@ -488,6 +489,29 @@ function getSelectedTopic() {
   return chapter.topics.find((topic) => topic.id === topicSelect.value) || chapter.topics[0];
 }
 
+function updateQuickNav() {
+  if (!quickNav) return;
+
+  const chapterIndex = currentChapters.findIndex((chapter) => chapter.id === chapterSelect.value);
+  const chapter = getSelectedChapter();
+  const topicIndex = chapter ? chapter.topics.findIndex((topic) => topic.id === topicSelect.value) : -1;
+  const nextChapterLink = quickNav.querySelector('[data-quick-action="next-chapter"]');
+  const nextSectionLink = quickNav.querySelector('[data-quick-action="next-section"]');
+
+  const setDisabled = (link, disabled) => {
+    link.classList.toggle("is-disabled", disabled);
+    link.setAttribute("aria-disabled", String(disabled));
+    if (disabled) {
+      link.setAttribute("tabindex", "-1");
+    } else {
+      link.removeAttribute("tabindex");
+    }
+  };
+
+  setDisabled(nextChapterLink, chapterIndex < 0 || chapterIndex >= currentChapters.length - 1);
+  setDisabled(nextSectionLink, !chapter || topicIndex < 0 || topicIndex >= chapter.topics.length - 1);
+}
+
 /**
  * Lencana maklumat subjek & tingkatan semasa
  */
@@ -600,7 +624,44 @@ function generate() {
   }
 
   resultEl.innerHTML = output;
+  updateQuickNav();
 }
+
+quickNav?.addEventListener("click", (event) => {
+  const link = event.target.closest("a[data-quick-action]");
+  if (!link || link.getAttribute("aria-disabled") === "true") {
+    event.preventDefault();
+    return;
+  }
+
+  const action = link.dataset.quickAction;
+  if (action === "top") return;
+
+  event.preventDefault();
+
+  if (action === "quiz") {
+    modeSelect.value = "quiz";
+    generate();
+  } else if (action === "next-chapter") {
+    const chapterIndex = currentChapters.findIndex((chapter) => chapter.id === chapterSelect.value);
+    const nextChapter = currentChapters[chapterIndex + 1];
+    if (nextChapter) {
+      chapterSelect.value = nextChapter.id;
+      populateTopics();
+      generate();
+    }
+  } else if (action === "next-section") {
+    const chapter = getSelectedChapter();
+    const topicIndex = chapter ? chapter.topics.findIndex((topic) => topic.id === topicSelect.value) : -1;
+    const nextTopic = chapter?.topics[topicIndex + 1];
+    if (nextTopic) {
+      topicSelect.value = nextTopic.id;
+      generate();
+    }
+  }
+
+  resultEl.scrollIntoView({ behavior: "smooth", block: "start" });
+});
 
 // Pasang event listeners
 tingkatanSelect.addEventListener("change", () => {

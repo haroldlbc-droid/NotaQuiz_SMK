@@ -6,7 +6,7 @@
   <title>Generator Nota &amp; Kuiz Pembelajaran</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
-<body>
+<body id="top">
   <header>
     <h1>Generator Nota &amp; Kuiz Pembelajaran</h1>
     <p>Bina ringkasan, fakta penting, dan soalan kuiz untuk pelbagai subjek dan tingkatan.</p>
@@ -44,6 +44,13 @@
       </section>
     </div>
   </main>
+
+  <nav id="quick-nav" class="quick-nav" aria-label="Navigasi pantas">
+    <a href="#result" data-quick-action="next-chapter">Next Chapter</a>
+    <a href="#result" data-quick-action="next-section">Next Section</a>
+    <a href="#result" data-quick-action="quiz">To Quiz</a>
+    <a href="#top" data-quick-action="top">Back To Top</a>
+  </nav>
 
   <script src="app.js"></script>
 </body>
