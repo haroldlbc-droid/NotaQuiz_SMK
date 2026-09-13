@@ -495,7 +495,9 @@ function updateQuickNav() {
   const chapterIndex = currentChapters.findIndex((chapter) => chapter.id === chapterSelect.value);
   const chapter = getSelectedChapter();
   const topicIndex = chapter ? chapter.topics.findIndex((topic) => topic.id === topicSelect.value) : -1;
+  const previousChapterLink = quickNav.querySelector('[data-quick-action="previous-chapter"]');
   const nextChapterLink = quickNav.querySelector('[data-quick-action="next-chapter"]');
+  const previousSectionLink = quickNav.querySelector('[data-quick-action="previous-section"]');
   const nextSectionLink = quickNav.querySelector('[data-quick-action="next-section"]');
 
   const setDisabled = (link, disabled) => {
@@ -508,7 +510,9 @@ function updateQuickNav() {
     }
   };
 
+  setDisabled(previousChapterLink, chapterIndex <= 0);
   setDisabled(nextChapterLink, chapterIndex < 0 || chapterIndex >= currentChapters.length - 1);
+  setDisabled(previousSectionLink, !chapter || topicIndex <= 0);
   setDisabled(nextSectionLink, !chapter || topicIndex < 0 || topicIndex >= chapter.topics.length - 1);
 }
 
@@ -645,20 +649,22 @@ quickNav?.addEventListener("click", (event) => {
   } else if (action === "quiz") {
     modeSelect.value = "quiz";
     generate();
-  } else if (action === "next-chapter") {
+  } else if (action === "previous-chapter" || action === "next-chapter") {
     const chapterIndex = currentChapters.findIndex((chapter) => chapter.id === chapterSelect.value);
-    const nextChapter = currentChapters[chapterIndex + 1];
-    if (nextChapter) {
-      chapterSelect.value = nextChapter.id;
+    const chapterOffset = action === "previous-chapter" ? -1 : 1;
+    const targetChapter = currentChapters[chapterIndex + chapterOffset];
+    if (targetChapter) {
+      chapterSelect.value = targetChapter.id;
       populateTopics();
       generate();
     }
-  } else if (action === "next-section") {
+  } else if (action === "previous-section" || action === "next-section") {
     const chapter = getSelectedChapter();
     const topicIndex = chapter ? chapter.topics.findIndex((topic) => topic.id === topicSelect.value) : -1;
-    const nextTopic = chapter?.topics[topicIndex + 1];
-    if (nextTopic) {
-      topicSelect.value = nextTopic.id;
+    const topicOffset = action === "previous-section" ? -1 : 1;
+    const targetTopic = chapter?.topics[topicIndex + topicOffset];
+    if (targetTopic) {
+      topicSelect.value = targetTopic.id;
       generate();
     }
   }

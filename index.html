@@ -46,8 +46,12 @@
   </main>
 
   <nav id="quick-nav" class="quick-nav" aria-label="Navigasi pantas">
-    <a href="#result" data-quick-action="next-chapter">Next Bab</a>
-    <a href="#result" data-quick-action="next-section">Next Topik</a>
+    <span class="quick-nav-group" aria-label="Navigasi bab">
+      <a href="#result" data-quick-action="previous-chapter" aria-label="Bab sebelumnya">&lt;-</a><span>Bab</span><a href="#result" data-quick-action="next-chapter" aria-label="Bab seterusnya">-&gt;</a>
+    </span>
+    <span class="quick-nav-group" aria-label="Navigasi topik">
+      <a href="#result" data-quick-action="previous-section" aria-label="Topik sebelumnya">&lt;-</a><span>Topik</span><a href="#result" data-quick-action="next-section" aria-label="Topik seterusnya">-&gt;</a>
+    </span>
     <a href="#result" data-quick-action="facts">Fakta</a>
     <a href="#result" data-quick-action="quiz">Kuiz</a>
     <a href="#top" data-quick-action="top">Atas</a>

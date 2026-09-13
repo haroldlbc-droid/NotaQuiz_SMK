@@ -295,6 +295,18 @@ main {
   white-space: nowrap;
 }
 
+.quick-nav-group {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.quick-nav-group > span {
+  color: var(--accent-dark);
+  font-size: 0.72rem;
+  line-height: 1.2;
+}
+
 .quick-nav a:hover,
 .quick-nav a:focus-visible {
   background: #e5efee;
