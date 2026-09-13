@@ -639,7 +639,10 @@ quickNav?.addEventListener("click", (event) => {
 
   event.preventDefault();
 
-  if (action === "quiz") {
+  if (action === "facts") {
+    modeSelect.value = "summary-facts";
+    generate();
+  } else if (action === "quiz") {
     modeSelect.value = "quiz";
     generate();
   } else if (action === "next-chapter") {
