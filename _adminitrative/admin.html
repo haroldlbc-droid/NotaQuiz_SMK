@@ -44,6 +44,12 @@
     #status.success { color: var(--success); }
     #status.error { color: var(--error); }
     .result { margin-top: 10px; padding: 14px; background: #edf6ef; border-left: 4px solid var(--success); color: var(--success); }
+    .datasets { margin-top: 36px; }
+    .datasets h2 { margin: 0 0 12px; font-size: 1.7rem; }
+    .dataset-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--line); font: 14px Arial, sans-serif; }
+    .dataset-row button { width: auto; padding: 8px 12px; background: var(--error); font-size: 12px; }
+    .dataset-row button:hover { background: #741e28; }
+    #dataset-list:empty::after { content: 'Tiada dataset ditemui.'; color: var(--muted); font: 14px Arial, sans-serif; }
     @media (max-width: 560px) { main { padding: 36px 0; } form { padding: 20px; box-shadow: 7px 7px 0 #e6d8c5; } }
   </style>
 </head>
@@ -73,6 +79,10 @@
       <button id="submit-button" type="submit">Import dan kemas kini</button>
       <div id="status" role="status" aria-live="polite"></div>
     </form>
+    <section class="datasets" aria-labelledby="datasets-title">
+      <h2 id="datasets-title">Dataset tersedia</h2>
+      <div id="dataset-list"></div>
+    </section>
   </main>
 
   <script>
@@ -84,6 +94,7 @@
     const folderButton = document.getElementById('folder-button');
     const folderStatus = document.getElementById('folder-status');
     const directFolderControls = document.getElementById('direct-folder-controls');
+    const datasetList = document.getElementById('dataset-list');
     let projectDirectory;
 
     if (window.location.protocol !== 'file:') directFolderControls.hidden = true;
@@ -126,6 +137,11 @@
       return value.split('_').map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
     }
 
+    function getDatasetIdentity(fileName) {
+      const match = fileName.match(/^(.*)_(tingkatan_\d+)(?:_.*)?\.csv$/i);
+      return match ? { subjectId: match[1].toLowerCase(), tingkatanId: match[2].toLowerCase() } : null;
+    }
+
     async function writeText(directory, name, text) {
       const handle = await directory.getFileHandle(name, { create: true });
       const writable = await handle.createWritable();
@@ -139,6 +155,15 @@
       const csvText = (await file.text()).replace(/^\uFEFF/, '');
       const rowCount = validateCsv(csvText);
       const dataDirectory = await projectDirectory.getDirectoryHandle('data', { create: true });
+      const targetIdentity = getDatasetIdentity(targetName);
+      if (targetIdentity) {
+        for await (const entry of dataDirectory.values()) {
+          const identity = entry.kind === 'file' ? getDatasetIdentity(entry.name) : null;
+          if (identity && identity.subjectId === targetIdentity.subjectId && identity.tingkatanId === targetIdentity.tingkatanId && entry.name !== targetName) {
+            await dataDirectory.removeEntry(entry.name);
+          }
+        }
+      }
       await writeText(dataDirectory, targetName, csvText);
 
       const datasets = [];
@@ -169,6 +194,48 @@
         await writeText(projectDirectory, 'app.js', `${appText.slice(0, valueStart)}${JSON.stringify(csvText)}${appText.slice(valueEnd + 1)}`);
       }
       return { rowCount, datasetCount: datasets.length };
+    }
+
+    async function loadDatasets() {
+      if (window.location.protocol === 'file:') return;
+      const response = await fetch('/api/datasets');
+      const payload = await response.json();
+      if (!response.ok || !payload.ok) throw new Error(payload.error || 'Gagal memuatkan dataset.');
+      renderDatasets(payload.datasets);
+    }
+
+    function renderDatasets(datasets) {
+      datasetList.replaceChildren(...datasets.map((dataset) => {
+        const row = document.createElement('div');
+        row.className = 'dataset-row';
+        const label = document.createElement('span');
+        label.textContent = `${dataset.subjectName} - ${dataset.tingkatanName} (${dataset.fileName})`;
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = 'Padam Subjek';
+        button.addEventListener('click', () => deleteSubject(dataset));
+        row.append(label, button);
+        return row;
+      }));
+    }
+
+    async function deleteSubject(dataset) {
+      if (!window.confirm(`Padam ${dataset.subjectName} untuk ${dataset.tingkatanName}?`)) return;
+      try {
+        const response = await fetch('/api/delete-subject', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ subjectId: dataset.subjectId, tingkatanId: dataset.tingkatanId })
+        });
+        const payload = await response.json();
+        if (!response.ok || !payload.ok) throw new Error(payload.error || 'Padam gagal.');
+        await loadDatasets();
+        status.className = 'success';
+        status.textContent = `Subjek ${dataset.subjectName} telah dipadam.`;
+      } catch (error) {
+        status.className = 'error';
+        status.textContent = error.message;
+      }
     }
 
     folderButton.addEventListener('click', async () => {
@@ -215,12 +282,18 @@
         const result = payload.result;
         status.className = 'success';
         status.innerHTML = `<div class="result">Berjaya: ${result.rowCount} baris diimport ke <strong>data/${result.targetName}</strong>. ${result.datasetCount} dataset disenaraikan dalam index.json.</div>`;
+        await loadDatasets();
       } catch (error) {
         status.className = 'error';
         status.textContent = error.message;
       } finally {
         submitButton.disabled = false;
       }
+    });
+
+    loadDatasets().catch((error) => {
+      status.className = 'error';
+      status.textContent = error.message;
     });
   </script>
 </body>

@@ -102,6 +102,93 @@ function validateCsv(csvText, sourcePath) {
   return { rowCount: contentRows.length, columnCount: headers.length };
 }
 
+function getDatasetIdentity(fileName) {
+  const match = fileName.match(/^(.*)_(tingkatan_\d+)(?:_.*)?\.csv$/i);
+  if (!match) return null;
+  return { subjectId: match[1].toLowerCase(), tingkatanId: match[2].toLowerCase() };
+}
+
+function formatLabel(value) {
+  return value
+    .split('_')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+}
+
+function updateDefaultDataset(targetName, removeOnly = false) {
+  const identity = getDatasetIdentity(targetName);
+  if (!identity) return false;
+
+  const appSource = fs.readFileSync(appPath, 'utf8');
+  const listStart = appSource.indexOf('const DEFAULT_DATASETS = [');
+  const listEnd = appSource.indexOf('];', listStart);
+  if (listStart === -1 || listEnd === -1) return false;
+
+  const listSource = appSource.slice(listStart, listEnd);
+  const identitySubject = `subjectId: ${JSON.stringify(identity.subjectId)},`;
+  const identityTingkatan = `tingkatanId: ${JSON.stringify(identity.tingkatanId)},`;
+  const cleanedList = listSource.replace(/\r?\n  \{[\s\S]*?\r?\n  \},?/g, (entry) => (
+    entry.includes(identitySubject) && entry.includes(identityTingkatan) ? '' : entry
+  )).trimEnd();
+
+  const entry = removeOnly ? '' : `\n  {
+    file: ${JSON.stringify(`data/${targetName}`)},
+    fileName: ${JSON.stringify(targetName)},
+    subjectId: ${JSON.stringify(identity.subjectId)},
+    subjectName: ${JSON.stringify(formatLabel(identity.subjectId))},
+    tingkatanId: ${JSON.stringify(identity.tingkatanId)},
+    tingkatanName: ${JSON.stringify(formatLabel(identity.tingkatanId))}
+  }`;
+  const updatedSource = `${appSource.slice(0, listStart)}${cleanedList}${entry}\n${appSource.slice(listEnd)}`;
+  fs.writeFileSync(appPath, updatedSource, 'utf8');
+  return true;
+}
+
+function removeExistingDatasetVariants(targetName) {
+  const identity = getDatasetIdentity(targetName);
+  if (!identity) return [];
+
+  const removedFiles = fs.readdirSync(dataDir).filter((fileName) => {
+    if (!fileName.toLowerCase().endsWith('.csv')) return false;
+    const fileIdentity = getDatasetIdentity(fileName);
+    return fileIdentity
+      && fileIdentity.subjectId === identity.subjectId
+      && fileIdentity.tingkatanId === identity.tingkatanId
+      && fileName !== targetName;
+  });
+
+  removedFiles.forEach((fileName) => {
+    fs.unlinkSync(path.join(dataDir, fileName));
+    removeEmbeddedFallback(fileName);
+    updateDefaultDataset(fileName, true);
+  });
+  return removedFiles;
+}
+
+function deleteSubject(subjectId, tingkatanId) {
+  const normalizedSubjectId = String(subjectId || '').toLowerCase();
+  const normalizedTingkatanId = String(tingkatanId || '').toLowerCase();
+  if (!/^[a-z0-9][a-z0-9_-]*$/.test(normalizedSubjectId)
+    || !/^tingkatan_\d+$/.test(normalizedTingkatanId)) {
+    throw new Error('Subjek dan Tingkatan tidak sah.');
+  }
+
+  const removedFiles = fs.readdirSync(dataDir).filter((fileName) => {
+    if (!fileName.toLowerCase().endsWith('.csv')) return false;
+    const identity = getDatasetIdentity(fileName);
+    return identity
+      && identity.subjectId === normalizedSubjectId
+      && identity.tingkatanId === normalizedTingkatanId;
+  });
+  removedFiles.forEach((fileName) => {
+    fs.unlinkSync(path.join(dataDir, fileName));
+    removeEmbeddedFallback(fileName);
+    updateDefaultDataset(fileName, true);
+  });
+  const datasets = scanDataDir();
+  return { removedFiles, datasetCount: datasets.length };
+}
+
 function findEmbeddedStringRange(source, key) {
   const propertyStart = source.indexOf(`"${key}"`);
   if (propertyStart === -1) return null;
@@ -124,12 +211,44 @@ function findEmbeddedStringRange(source, key) {
   return null;
 }
 
+function removeEmbeddedFallback(targetName) {
+  const fallbackKey = `data/${targetName}`;
+  const appSource = fs.readFileSync(appPath, 'utf8');
+  const fallbackStart = appSource.indexOf('const EMBEDDED_FALLBACKS = {');
+  const fallbackComment = appSource.indexOf('\n// Sandaran senarai dataset', fallbackStart);
+  const fallbackEnd = appSource.lastIndexOf('};', fallbackComment);
+  if (fallbackStart === -1 || fallbackEnd === -1) return false;
+
+  const fallbackSource = appSource.slice(fallbackStart, fallbackEnd);
+  const propertyStart = fallbackSource.indexOf(`  ${JSON.stringify(fallbackKey)}:`);
+  if (propertyStart === -1) return false;
+
+  const range = findEmbeddedStringRange(fallbackSource, fallbackKey);
+  if (!range) return false;
+
+  let entryStart = propertyStart;
+  let entryEnd = fallbackStart + range.end;
+  while (appSource[entryEnd] === '\r' || appSource[entryEnd] === '\n') entryEnd += 1;
+  if (appSource[entryEnd] === ',') {
+    entryEnd += 1;
+  } else {
+    const precedingComma = fallbackSource.lastIndexOf(',', propertyStart);
+    if (precedingComma !== -1) entryStart = precedingComma;
+  }
+  while (appSource[entryEnd] === '\r' || appSource[entryEnd] === '\n') entryEnd += 1;
+
+  const absoluteStart = fallbackStart + entryStart;
+  const updatedSource = `${appSource.slice(0, absoluteStart)}${appSource.slice(entryEnd)}`;
+  fs.writeFileSync(appPath, updatedSource, 'utf8');
+  return true;
+}
+
 function updateEmbeddedFallback(targetName, csvText) {
   const fallbackKey = `data/${targetName}`;
   const appSource = fs.readFileSync(appPath, 'utf8');
   const fallbackStart = appSource.indexOf('const EMBEDDED_FALLBACKS = {');
-  const fallbackEndMarker = '\n};\n\n// Sandaran senarai dataset';
-  const fallbackEnd = appSource.indexOf(fallbackEndMarker, fallbackStart);
+  const fallbackComment = appSource.indexOf('\n// Sandaran senarai dataset', fallbackStart);
+  const fallbackEnd = appSource.lastIndexOf('};', fallbackComment);
   if (fallbackStart === -1 || fallbackEnd === -1) {
     return false;
   }
@@ -167,16 +286,24 @@ function importCsv(sourceFile, targetFile) {
   fs.mkdirSync(dataDir, { recursive: true });
   const targetPath = path.join(dataDir, targetName);
   fs.copyFileSync(sourcePath, targetPath);
+  const replacedFiles = removeExistingDatasetVariants(targetName);
 
   const datasets = scanDataDir();
   const fallbackUpdated = updateEmbeddedFallback(targetName, csvText);
+  const defaultDatasetUpdated = updateDefaultDataset(targetName);
 
   console.log(`Imported ${summary.rowCount} row(s) and ${summary.columnCount} column(s) to ${path.relative(projectRoot, targetPath)}.`);
+  if (replacedFiles.length > 0) {
+    console.log(`Replaced existing dataset file(s): ${replacedFiles.join(', ')}.`);
+  }
   console.log(`Updated data/index.json with ${datasets.length} dataset(s).`);
   if (fallbackUpdated) {
     console.log(`Updated embedded fallback in app.js for ${targetName}.`);
   } else {
     console.log(`No embedded fallback entry exists for ${targetName}; index.json remains the runtime source.`);
+  }
+  if (defaultDatasetUpdated) {
+    console.log(`Updated DEFAULT_DATASETS in app.js for ${targetName}.`);
   }
 
   return {
@@ -184,7 +311,9 @@ function importCsv(sourceFile, targetFile) {
     rowCount: summary.rowCount,
     columnCount: summary.columnCount,
     datasetCount: datasets.length,
-    fallbackUpdated
+    replacedFiles,
+    fallbackUpdated,
+    defaultDatasetUpdated
   };
 }
 
@@ -203,4 +332,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { importCsv, parseCsv, validateCsv };
+module.exports = { deleteSubject, getDatasetIdentity, importCsv, parseCsv, removeEmbeddedFallback, updateDefaultDataset, validateCsv };

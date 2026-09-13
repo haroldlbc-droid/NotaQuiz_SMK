@@ -2,7 +2,7 @@ const fs = require('fs');
 const http = require('http');
 const os = require('os');
 const path = require('path');
-const { importCsv } = require('./import_csv');
+const { deleteSubject, importCsv } = require('./import_csv');
 
 const projectRoot = path.resolve(__dirname, '..');
 const adminPage = path.join(__dirname, 'admin.html');
@@ -18,9 +18,23 @@ const staticFiles = {
   '/data/sejarah_tingkatan_1.csv': ['data/sejarah_tingkatan_1.csv', 'text/csv; charset=utf-8']
 };
 
+function getDataCsvPath(requestUrl) {
+  const requestedPath = new URL(requestUrl, 'http://127.0.0.1').pathname;
+  const match = requestedPath.match(/^\/data\/([a-z0-9][a-z0-9_-]*\.csv)$/i);
+  if (!match) return null;
+
+  const filePath = path.join(projectRoot, 'data', match[1]);
+  return fs.existsSync(filePath) ? filePath : null;
+}
+
 function sendJson(response, statusCode, body) {
   response.writeHead(statusCode, { 'Content-Type': 'application/json; charset=utf-8' });
   response.end(JSON.stringify(body));
+}
+
+function readDatasets() {
+  const indexPath = path.join(projectRoot, 'data', 'index.json');
+  return JSON.parse(fs.readFileSync(indexPath, 'utf8'));
 }
 
 function readJson(request) {
@@ -72,6 +86,16 @@ async function handleImport(request, response) {
   }
 }
 
+async function handleDeleteSubject(request, response) {
+  try {
+    const payload = await readJson(request);
+    const result = deleteSubject(payload && payload.subjectId, payload && payload.tingkatanId);
+    sendJson(response, 200, { ok: true, result });
+  } catch (error) {
+    sendJson(response, 400, { ok: false, error: error.message });
+  }
+}
+
 const server = http.createServer((request, response) => {
   if (request.method === 'GET' && (request.url === '/' || request.url === '/admin.html')) {
     response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
@@ -86,8 +110,29 @@ const server = http.createServer((request, response) => {
     return;
   }
 
+  const dataCsvPath = getDataCsvPath(request.url);
+  if (request.method === 'GET' && dataCsvPath) {
+    response.writeHead(200, { 'Content-Type': 'text/csv; charset=utf-8' });
+    fs.createReadStream(dataCsvPath).pipe(response);
+    return;
+  }
+
   if (request.method === 'POST' && request.url === '/api/import') {
     handleImport(request, response);
+    return;
+  }
+
+  if (request.method === 'GET' && request.url === '/api/datasets') {
+    try {
+      sendJson(response, 200, { ok: true, datasets: readDatasets() });
+    } catch (error) {
+      sendJson(response, 500, { ok: false, error: error.message });
+    }
+    return;
+  }
+
+  if (request.method === 'POST' && request.url === '/api/delete-subject') {
+    handleDeleteSubject(request, response);
     return;
   }
 
