@@ -16,8 +16,8 @@
     "tingkatanName": "Tingkatan 1"
   },
   {
-    "file": "data/sejarah_tingkatan_1.csv",
-    "fileName": "sejarah_tingkatan_1.csv",
+    "file": "data/sejarah_tingkatan_1_v2.csv",
+    "fileName": "sejarah_tingkatan_1_v2.csv",
     "subjectId": "sejarah",
     "subjectName": "Sejarah",
     "tingkatanId": "tingkatan_1",
