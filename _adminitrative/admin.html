@@ -77,6 +77,7 @@
       </div>
 
       <button id="submit-button" type="submit">Import dan kemas kini</button>
+      <button id="close-session-button" class="secondary" type="button">Tutup sesi</button>
       <div id="status" role="status" aria-live="polite"></div>
     </form>
     <section class="datasets" aria-labelledby="datasets-title">
@@ -90,6 +91,7 @@
     const fileInput = document.getElementById('csv-file');
     const targetInput = document.getElementById('target-name');
     const submitButton = document.getElementById('submit-button');
+    const closeSessionButton = document.getElementById('close-session-button');
     const status = document.getElementById('status');
     const folderButton = document.getElementById('folder-button');
     const folderStatus = document.getElementById('folder-status');
@@ -255,6 +257,33 @@
     fileInput.addEventListener('change', () => {
       if (fileInput.files[0]) {
         targetInput.value = fileInput.files[0].name;
+      }
+    });
+
+    closeSessionButton.addEventListener('click', async () => {
+      if (!window.confirm('Tutup sesi admin?')) return;
+
+      closeSessionButton.disabled = true;
+      submitButton.disabled = true;
+      status.className = 'success';
+      status.textContent = 'Menutup sesi admin...';
+
+      try {
+        if (window.location.protocol === 'file:') {
+          status.textContent = 'Sesi admin ditutup. Anda boleh menutup tab ini.';
+          return;
+        }
+
+        const response = await fetch('/api/shutdown', { method: 'POST' });
+        const payload = await response.json();
+        if (!response.ok || !payload.ok) throw new Error(payload.error || 'Gagal menutup sesi.');
+        status.textContent = 'Sesi admin ditutup. Anda boleh menutup tab ini.';
+        window.close();
+      } catch (error) {
+        closeSessionButton.disabled = false;
+        submitButton.disabled = false;
+        status.className = 'error';
+        status.textContent = error.message;
       }
     });
 

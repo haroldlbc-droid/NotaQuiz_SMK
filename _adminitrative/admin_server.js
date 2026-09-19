@@ -136,6 +136,12 @@ const server = http.createServer((request, response) => {
     return;
   }
 
+  if (request.method === 'POST' && request.url === '/api/shutdown') {
+    sendJson(response, 200, { ok: true, message: 'Sesi admin ditutup.' });
+    server.close(() => process.exit(0));
+    return;
+  }
+
   sendJson(response, 404, { ok: false, error: 'Laluan tidak dijumpai.' });
 });
 
