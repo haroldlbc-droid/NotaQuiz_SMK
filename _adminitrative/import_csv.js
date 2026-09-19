@@ -131,7 +131,9 @@ function updateDefaultDataset(targetName, removeOnly = false) {
     entry.includes(identitySubject) && entry.includes(identityTingkatan) ? '' : entry
   )).trimEnd();
 
-  const entry = removeOnly ? '' : `\n  {
+  const listTrimmed = cleanedList.trimEnd();
+  const separator = listTrimmed.endsWith('[') || listTrimmed.endsWith(',') ? '' : ',';
+  const entry = removeOnly ? '' : `${separator}\n  {
     file: ${JSON.stringify(`data/${targetName}`)},
     fileName: ${JSON.stringify(targetName)},
     subjectId: ${JSON.stringify(identity.subjectId)},
