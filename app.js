@@ -20,7 +20,7 @@ const DEFAULT_DATASETS = [
     subjectName: "Sains",
     tingkatanId: "tingkatan_1",
     tingkatanName: "Tingkatan 1"
-  }
+  },
   {
     file: "data/matematik_tingkatan_1_bilingual_v4_explained.csv",
     fileName: "matematik_tingkatan_1_bilingual_v4_explained.csv",
@@ -28,7 +28,7 @@ const DEFAULT_DATASETS = [
     subjectName: "Matematik",
     tingkatanId: "tingkatan_1",
     tingkatanName: "Tingkatan 1"
-  }
+  },
   {
     file: "data/sejarah_tingkatan_1_v2.csv",
     fileName: "sejarah_tingkatan_1_v2.csv",
