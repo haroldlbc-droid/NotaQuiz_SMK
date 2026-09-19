@@ -1,21 +1,5 @@
 [
   {
-    "file": "data/matematik_tingkatan_1_bilingual_v3.csv",
-    "fileName": "matematik_tingkatan_1_bilingual_v3.csv",
-    "subjectId": "matematik",
-    "subjectName": "Matematik",
-    "tingkatanId": "tingkatan_1",
-    "tingkatanName": "Tingkatan 1"
-  },
-  {
-    "file": "data/sains_tingkatan_1.csv",
-    "fileName": "sains_tingkatan_1.csv",
-    "subjectId": "sains",
-    "subjectName": "Sains",
-    "tingkatanId": "tingkatan_1",
-    "tingkatanName": "Tingkatan 1"
-  },
-  {
     "file": "data/sejarah_tingkatan_1_v2.csv",
     "fileName": "sejarah_tingkatan_1_v2.csv",
     "subjectId": "sejarah",
