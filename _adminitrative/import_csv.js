@@ -165,6 +165,28 @@ function removeExistingDatasetVariants(targetName) {
   return removedFiles;
 }
 
+function replaceFileAtomically(sourcePath, targetPath) {
+  const stagingPath = `${targetPath}.upload-${process.pid}-${Date.now()}`;
+  const backupPath = `${targetPath}.backup-${process.pid}-${Date.now()}`;
+  let movedExistingFile = false;
+
+  try {
+    fs.copyFileSync(sourcePath, stagingPath);
+    if (fs.existsSync(targetPath)) {
+      fs.renameSync(targetPath, backupPath);
+      movedExistingFile = true;
+    }
+    fs.renameSync(stagingPath, targetPath);
+    if (movedExistingFile) fs.rmSync(backupPath, { force: true });
+  } catch (error) {
+    fs.rmSync(stagingPath, { force: true });
+    if (movedExistingFile && !fs.existsSync(targetPath)) {
+      fs.renameSync(backupPath, targetPath);
+    }
+    throw error;
+  }
+}
+
 function deleteSubject(subjectId, tingkatanId) {
   const normalizedSubjectId = String(subjectId || '').toLowerCase();
   const normalizedTingkatanId = String(tingkatanId || '').toLowerCase();
@@ -285,7 +307,7 @@ function importCsv(sourceFile, targetFile) {
   const summary = validateCsv(csvText, sourcePath);
   fs.mkdirSync(dataDir, { recursive: true });
   const targetPath = path.join(dataDir, targetName);
-  fs.copyFileSync(sourcePath, targetPath);
+  replaceFileAtomically(sourcePath, targetPath);
   const replacedFiles = removeExistingDatasetVariants(targetName);
 
   const datasets = scanDataDir();

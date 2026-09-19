@@ -152,10 +152,15 @@
     async function updateDirectly(file, targetName) {
       if (!window.showDirectoryPicker) throw new Error('Browser ini tidak menyokong folder access. Gunakan Chrome atau Edge.');
       if (!projectDirectory) throw new Error('Pilih folder projek dahulu.');
+      if (!/^[a-z0-9][a-z0-9_-]*\.csv$/i.test(targetName)) {
+        throw new Error('Nama fail sasaran mesti menggunakan huruf, nombor, tanda sempang, atau garis bawah.');
+      }
       const csvText = (await file.text()).replace(/^\uFEFF/, '');
       const rowCount = validateCsv(csvText);
       const dataDirectory = await projectDirectory.getDirectoryHandle('data', { create: true });
       const targetIdentity = getDatasetIdentity(targetName);
+      await writeText(dataDirectory, targetName, csvText);
+
       if (targetIdentity) {
         for await (const entry of dataDirectory.values()) {
           const identity = entry.kind === 'file' ? getDatasetIdentity(entry.name) : null;
@@ -164,7 +169,6 @@
           }
         }
       }
-      await writeText(dataDirectory, targetName, csvText);
 
       const datasets = [];
       for await (const entry of dataDirectory.values()) {
