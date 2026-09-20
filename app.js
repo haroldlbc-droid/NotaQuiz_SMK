@@ -50,6 +50,7 @@ const tingkatanSelect = document.getElementById("tingkatan-select");
 const subjectSelect = document.getElementById("subject-select");
 const chapterSelect = document.getElementById("chapter-select");
 const topicSelect = document.getElementById("topic-select");
+const languageSelect = document.getElementById("language-select");
 const modeSelect = document.getElementById("mode-select");
 const generateBtn = document.getElementById("generate-btn");
 const statusMessageEl = document.getElementById("status-message");
@@ -527,6 +528,58 @@ function getDatasetBadgeHtml() {
   return `<div class="dataset-badge">📖 ${currentDatasetInfo.subject} &bull; ${currentDatasetInfo.tingkatan}</div>`;
 }
 
+function englishOnly(text) {
+  if (!text) return "";
+  const bilingualParts = text.split(/\s(?:\/|\|)\s/);
+  const englishText = bilingualParts.length > 1
+    ? bilingualParts
+      .filter((part, index) => index % 2 === 1 && !/^(jawapan|cara|oleh itu|kaedah|soalan)$/i.test(part.trim()))
+      .join(" / ")
+      .trim()
+    : text;
+  return englishText
+    .replace(/\b(?:Cara|Oleh itu|Jawapan|Soalan|Kaedah)\s*\/\s*/gi, "")
+    .replace(/\s+\b(?:Oleh itu|Cara|Jawapan|Soalan|Kaedah)\s*$/i, "")
+    .trim();
+}
+
+function englishLabel(text) {
+  return /\s(?:\/|\|)\s/.test(text) ? englishOnly(text) : "";
+}
+
+function malayOnly(text) {
+  if (!text) return "";
+  const bilingualParts = text.split(/\s(?:\/|\|)\s/);
+  return bilingualParts.length > 1
+    ? bilingualParts.filter((_, index) => index % 2 === 0).join(" ").trim()
+    : text;
+}
+
+async function translateToChinese(text) {
+  const response = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=ms&tl=zh-CN&dt=t&q=${encodeURIComponent(text)}`);
+  if (!response.ok) throw new Error("Perkhidmatan terjemahan tidak tersedia.");
+  const data = await response.json();
+  return Array.isArray(data[0]) ? data[0].map((part) => part[0]).join("") : text;
+}
+
+function markForTranslation(text) {
+  return `<span data-translate="${encodeURIComponent(text)}">${text}</span>`;
+}
+
+function markMalayAndChinese(text) {
+  return `<span class="translation-pair"><span>${text}</span><span class="translation-zh" data-translate="${encodeURIComponent(text)}"></span></span>`;
+}
+
+async function translateRenderedOutput() {
+  const elements = [...resultEl.querySelectorAll("[data-translate]")];
+  const uniqueTexts = [...new Set(elements.map((element) => decodeURIComponent(element.dataset.translate)))];
+  const translations = await Promise.all(uniqueTexts.map(async (text) => [text, await translateToChinese(text)]));
+  const translationMap = new Map(translations);
+  elements.forEach((element) => {
+    element.textContent = translationMap.get(decodeURIComponent(element.dataset.translate)) || element.textContent;
+  });
+}
+
 /**
  * Paparan Fakta Penting & Ringkasan
  */
@@ -611,11 +664,34 @@ function renderQuiz(topic) {
   return `${getDatasetBadgeHtml()}<h2 class="topic-title">${topic.name}</h2>${questionHtml}`;
 }
 
+function renderMalayChinese(topic) {
+  const facts = (topic.facts || [])
+    .map((fact) => `<li>${markMalayAndChinese(malayOnly(fact))}</li>`)
+    .join("");
+  const quizItems = (topic.quiz || []).map((item, index) => {
+    const choicesHtml = (item.choices || [])
+      .map((choice, choiceIndex) => `<li><strong>${String.fromCharCode(65 + choiceIndex)}.</strong> ${markMalayAndChinese(malayOnly(choice))}</li>`)
+      .join("");
+    return `<article class="quiz-item">
+      <h3>Soalan ${index + 1}</h3>
+      <p><strong>${markMalayAndChinese(malayOnly(item.question))}</strong></p>
+      ${choicesHtml ? `<ul>${choicesHtml}</ul>` : ""}
+      <div class="quiz-answer"><strong>Jawapan:</strong> ${markMalayAndChinese(malayOnly(item.answer))}</div>
+    </article>`;
+  }).join("");
+
+  return `${getDatasetBadgeHtml()}<h2 class="topic-title">${markMalayAndChinese(malayOnly(topic.name))}</h2>
+    ${topic.summary ? `<div class="topic-summary"><p><strong>Ringkasan Topik:</strong> ${markMalayAndChinese(malayOnly(topic.summary))}</p></div>` : ""}
+    ${facts ? `<ul>${facts}</ul>` : ""}
+    ${quizItems}`;
+}
+
 /**
  * Hasilkan paparan berasaskan mod yang dipilih
  */
-function generate() {
+async function generate() {
   const topic = getSelectedTopic();
+  const language = languageSelect.value;
   const mode = modeSelect.value;
 
   if (!topic) {
@@ -624,7 +700,9 @@ function generate() {
   }
 
   let output = "";
-  if (mode === "summary-facts") {
+  if (language === "ms-zh") {
+    output = renderMalayChinese({ ...topic, quiz: mode === "quiz" ? topic.quiz : [] });
+  } else if (mode === "summary-facts") {
     output = renderFacts(topic);
   } else if (mode === "quiz") {
     output = renderQuiz(topic);
@@ -632,6 +710,14 @@ function generate() {
 
   resultEl.innerHTML = output;
   updateQuickNav();
+
+  if (language === "ms-zh") {
+    try {
+      await translateRenderedOutput();
+    } catch (error) {
+      showStatus(`Terjemahan Cina gagal: ${error.message}`, "warning");
+    }
+  }
 }
 
 quickNav?.addEventListener("click", (event) => {
@@ -687,6 +773,7 @@ chapterSelect.addEventListener("change", () => {
   generate();
 });
 topicSelect.addEventListener("change", generate);
+languageSelect.addEventListener("change", generate);
 modeSelect.addEventListener("change", generate);
 generateBtn.addEventListener("click", generate);
 

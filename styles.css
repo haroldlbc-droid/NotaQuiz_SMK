@@ -138,6 +138,16 @@ main {
   border: 1px solid #decf9f;
 }
 
+.translation-pair {
+  display: inline-block;
+}
+
+.translation-zh {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--muted);
+}
+
 .status-message.error {
   background: #f5e6e3;
   color: #8a443d;
