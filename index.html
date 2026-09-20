@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="ms">
+<html lang="ms" translate="no">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="google" content="notranslate" />
   <title>Generator Nota &amp; Kuiz Pembelajaran</title>
   <link rel="stylesheet" href="styles.css?v=2" />
 </head>
@@ -11,6 +12,11 @@
     <h1>Generator Nota &amp; Kuiz Pembelajaran</h1>
     <p>Ringkasan, fakta penting dan kuiz untuk pelbagai subjek dan tingkatan.</p>
   </header>
+
+  <div id="language-switcher" class="language-switcher" role="group" aria-label="Pilih Bahasa">
+    <button type="button" class="language-button language-button-en is-active" data-language="ms-en" aria-pressed="true">Malay / English</button>
+    <button type="button" class="language-button language-button-zh" data-language="ms-zh" aria-pressed="false">Malay / 中文</button>
+  </div>
 
   <main>
     <div class="app-layout">
@@ -27,12 +33,6 @@
 
           <label for="topic-select">Pilih Topik:</label>
           <select id="topic-select"></select>
-
-          <label for="language-select">Pilih Bahasa:</label>
-          <select id="language-select">
-            <option value="ms-en">Malay / English</option>
-            <option value="ms-zh">Malay / 中文</option>
-          </select>
 
           <label for="mode-select">Pilih Mod:</label>
           <select id="mode-select">

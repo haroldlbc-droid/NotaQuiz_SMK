@@ -50,12 +50,13 @@ const tingkatanSelect = document.getElementById("tingkatan-select");
 const subjectSelect = document.getElementById("subject-select");
 const chapterSelect = document.getElementById("chapter-select");
 const topicSelect = document.getElementById("topic-select");
-const languageSelect = document.getElementById("language-select");
+const languageButtons = document.querySelectorAll(".language-button");
 const modeSelect = document.getElementById("mode-select");
 const generateBtn = document.getElementById("generate-btn");
 const statusMessageEl = document.getElementById("status-message");
 const resultEl = document.getElementById("result");
 const quickNav = document.getElementById("quick-nav");
+let currentLanguage = "ms-en";
 
 // Senarai dataset yang tersedia daripada CSV
 let availableDatasets = [];
@@ -691,7 +692,7 @@ function renderMalayChinese(topic) {
  */
 async function generate() {
   const topic = getSelectedTopic();
-  const language = languageSelect.value;
+  const language = currentLanguage;
   const mode = modeSelect.value;
 
   if (!topic) {
@@ -773,7 +774,17 @@ chapterSelect.addEventListener("change", () => {
   generate();
 });
 topicSelect.addEventListener("change", generate);
-languageSelect.addEventListener("change", generate);
+languageButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    currentLanguage = button.dataset.language;
+    languageButtons.forEach((languageButton) => {
+      const isActive = languageButton === button;
+      languageButton.classList.toggle("is-active", isActive);
+      languageButton.setAttribute("aria-pressed", String(isActive));
+    });
+    generate();
+  });
+});
 modeSelect.addEventListener("change", generate);
 generateBtn.addEventListener("click", generate);
 
