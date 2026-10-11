@@ -591,8 +591,7 @@ main {
 }
 
 .exam-answer-key ol {
-  columns: 2;
-  column-gap: 2rem;
+  columns: 1;
   padding-left: 1.5rem;
 }
 

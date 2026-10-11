@@ -849,14 +849,14 @@ function renderAnnualExam({ multipleChoice, shortAnswer }, translate = false) {
       `<li><strong>${String.fromCharCode(65 + choiceIndex)}.</strong> ${examText(choice)}</li>`
     ).join('');
     return `<article class="exam-question">
-      <p><strong>${index + 1}.</strong> ${examText(item.question)} <span class="exam-mark">[1 markah]</span> <span class="exam-inline-answer" hidden>Jawapan: ${answerLetter}. ${examText(item.correctAnswer)}${item.explanation ? `<br><span class="exam-inline-reason">Cara / Sebab: ${examText(item.explanation)}</span>` : ''}</span></p>
+      <p><strong>${index + 1}.</strong> ${examText(item.question)} <span class="exam-mark">[1 markah]</span> <span class="exam-inline-answer" hidden>Jawapan: ${answerLetter}. ${examText(item.correctAnswer)}</span></p>
       <ol class="exam-choices">${choices}</ol>
     </article>`;
   }).join('');
 
   const writtenQuestions = shortAnswer.map((item, index) => `
     <article class="exam-question exam-written-question">
-      <p><strong>${index + 1}.</strong> ${examText(item.question)} <span class="exam-mark">[2 markah]</span> <span class="exam-inline-answer" hidden>Contoh jawapan: ${examText(item.answer)}${item.explanation ? `<br><span class="exam-inline-reason">Konsep: ${examText(item.explanation)}</span>` : ''}</span></p>
+      <p><strong>${index + 1}.</strong> ${examText(item.question)} <span class="exam-mark">[2 markah]</span> <span class="exam-inline-answer" hidden>Contoh jawapan: ${examText(item.answer)}</span></p>
       <div class="exam-answer-lines" aria-hidden="true"></div>
     </article>`).join('');
 
