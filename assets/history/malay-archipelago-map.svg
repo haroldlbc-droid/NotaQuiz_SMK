@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-labelledby="map-title map-desc">
+  <title id="map-title">Peta skematik Alam Melayu</title>
+  <desc id="map-desc">Peta skematik Semenanjung Tanah Melayu, Sumatera, Jawa, Borneo dan Filipina dengan beberapa pusat kerajaan awal.</desc>
+  <rect width="960" height="540" fill="#dcebf0"/>
+  <g fill="none" stroke="#a8cbd0" stroke-width="2" opacity=".65">
+    <path d="M0 110H960M0 210H960M0 310H960M0 410H960M160 0V540M320 0V540M480 0V540M640 0V540M800 0V540"/>
+  </g>
+  <g fill="#809c79" stroke="#476b5c" stroke-width="3" stroke-linejoin="round">
+    <path d="M0 0H340l12 28-10 20 14 22-15 18 8 19-16 21 8 19-15 18-2 24-16 17-5 25-20 18-7 27-17 16-4 34-15 17H0Z"/>
+    <path d="M334 42l27 7 9 22-11 19 4 19-13 20 2 19-14 20-2 23-17 22-7-17 8-23-2-21 11-18 1-22 12-20-5-24z"/>
+    <path d="M278 188l21 8 10 17-4 22 11 18-7 22-13 19-7 24-14 18-8 30-14 13-5-23 10-24 2-24 12-23-1-24 10-21z"/>
+    <path d="M267 388l64-4 58 8 47 13-36 13-56 2-52-7-40-12z"/>
+    <path d="M481 204l35-22 49 6 24 22-7 36 20 19-11 40-29 16-9 40-42 23-40-16-13-33-29-21 13-33-13-26 23-26z"/>
+    <path d="M650 139l23-18 18 9-7 24 18 11-11 19-22-5-10 22-18-8 5-25-18-13zM701 208l14-12 14 8-4 18-17 4zM738 250l17-9 10 12-8 16-17-3zM774 278l12-14 15 7-5 18-16 3zM804 223l14-11 10 15-11 14z"/>
+    <path d="M139 241l13-9 8 16-8 18-11-8zM180 284l11-8 9 16-8 18-13-9zM223 330l8-13 10 16-5 15-11-5z"/>
+  </g>
+  <g fill="none" stroke="#b66a43" stroke-width="4" stroke-dasharray="8 9" stroke-linecap="round" opacity=".9">
+    <path d="M351 158C331 208 308 251 299 291S319 365 344 398"/>
+    <path d="M344 398C405 379 463 363 514 326S563 271 553 238"/>
+  </g>
+  <g fill="#b66a43" stroke="#fffefa" stroke-width="3">
+    <circle cx="350" cy="158" r="8"/><circle cx="299" cy="291" r="8"/><circle cx="345" cy="398" r="8"/><circle cx="351" cy="190" r="8"/><circle cx="230" cy="123" r="8"/><circle cx="302" cy="145" r="8"/>
+  </g>
+  <g fill="#263f42" font-family="Georgia, serif" font-size="21" font-weight="700">
+    <text x="26" y="68">Tanah Besar Asia Tenggara</text>
+    <text x="388" y="83">Semenanjung Tanah Melayu</text>
+    <text x="204" y="262">Sumatera</text>
+    <text x="300" y="455">Jawa</text>
+    <text x="510" y="274">Borneo</text>
+    <text x="713" y="115">Kepulauan Filipina</text>
+  </g>
+  <g fill="#8b4b32" font-family="Arial, sans-serif" font-size="15" font-weight="700">
+    <text x="362" y="151">Kedah Tua</text>
+    <text x="207" y="286">Srivijaya</text>
+    <text x="352" y="421">Majapahit</text>
+    <text x="364" y="196">Gangga Nagara</text>
+    <text x="168" y="119">Angkor</text>
+    <text x="309" y="141">Champa</text>
+  </g>
+  <g fill="#476b5c" font-family="Arial, sans-serif" font-size="14">
+    <text x="34" y="500">LAUTAN HINDIA</text>
+    <text x="760" y="500">LAUTAN PASIFIK</text>
+  </g>
+</svg>

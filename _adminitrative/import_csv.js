@@ -82,9 +82,9 @@ function validateCsv(csvText, sourcePath) {
   }
 
   const expectedColumnCount = headers.length;
-  const malformedRows = rows.slice(1).filter((row) => row.length !== expectedColumnCount);
+  const malformedRows = rows.slice(1).filter((row) => row.length > expectedColumnCount);
   if (malformedRows.length > 0) {
-    throw new Error(`CSV contains ${malformedRows.length} row(s) with a different number of columns than the header.`);
+    throw new Error(`CSV contains ${malformedRows.length} row(s) with more columns than the header.`);
   }
 
   const contentRows = rows.slice(1).filter((row) => row.some((value) => value.trim() !== ''));

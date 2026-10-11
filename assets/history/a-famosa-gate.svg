@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-labelledby="gate-title gate-desc">
+  <title id="gate-title">Ilustrasi Porta de Santiago, A Famosa</title>
+  <desc id="gate-desc">Ilustrasi pendidikan pintu gerbang batu Porta de Santiago yang masih tinggal daripada kubu A Famosa di Melaka.</desc>
+  <rect width="960" height="540" fill="#e4edf0"/>
+  <circle cx="775" cy="102" r="52" fill="#dfad62"/>
+  <path d="M0 374Q151 318 321 365T650 354T960 345V540H0Z" fill="#9eae87"/>
+  <path d="M0 425Q205 376 420 414T960 405V540H0Z" fill="#728d6d"/>
+  <path d="M244 454V209L293 180V151L344 151V125H616V151H666V180L715 209V454Z" fill="#b98554" stroke="#78563e" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M293 209V193L330 174V146H630V174L666 193V209Z" fill="#8d6548"/>
+  <path d="M244 229H715M244 271H715M244 313H715M244 355H715M244 397H715" stroke="#d5a474" stroke-width="6" opacity=".8"/>
+  <path d="M421 454V333Q421 275 480 275Q539 275 539 333V454Z" fill="#31494a" stroke="#78563e" stroke-width="8"/>
+  <path d="M448 454V337Q448 303 480 303Q512 303 512 337V454Z" fill="#b98554"/>
+  <path d="M270 229h34v20h-34zm68 0h34v20h-34zm216 0h34v20h-34zm68 0h34v20h-34zM270 271h34v20h-34zm68 0h34v20h-34zm216 0h34v20h-34zm68 0h34v20h-34z" fill="#715541" opacity=".7"/>
+  <path d="M115 454q14-90 73-101 24-76 93-66 24 39 8 83l41 84zm600 0q8-77 63-103 7-66 58-87 55 37 32 101l48 89z" fill="#486d59"/>
+  <text x="480" y="500" text-anchor="middle" fill="#34494a" font-family="Georgia,serif" font-size="23" font-weight="700">Porta de Santiago · Melaka</text>
+</svg>
